@@ -65,8 +65,6 @@ bool ParseOption(string option, const vector<string>& args, T& target, size_t& i
 	}
 
 	i++;
-	if (option == "-seed")
-		printf("String seed %lu\n", StringToValue<T>(args[i].c_str()));
 	T value = StringToValue<T>(args[i].c_str());
 	if (value < min || value > max)
 	{

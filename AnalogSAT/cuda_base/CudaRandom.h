@@ -26,21 +26,23 @@
 namespace analogsat
 {
 	//Random number generation, implements ISatRandom, using CUDA
-	template <typename TFloat> 
+	template <typename TFloat>
 	class CudaRandom : public ISatRandom<TFloat>
 	{
 	private:
 		curandGenerator_t prngGPU; //handle to CUDA random generator
-
+		unsigned long _seed;
 	public:
 
 		//initialize with a random seed (based on current time)
 		CudaRandom();
 
 		//initialize with the given random seed
-		CudaRandom(unsigned int seed);
+		CudaRandom(unsigned long seed);
 
 		~CudaRandom() override;
+
+		unsigned long getSeed() const {	return _seed; }
 
 		void GenerateUniform(TFloat* addr, int length) override;
 	};

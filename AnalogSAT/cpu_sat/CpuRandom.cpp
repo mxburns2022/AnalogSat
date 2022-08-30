@@ -30,7 +30,7 @@ namespace analogsat
 	}
 
 	template<typename TFloat>
-	CpuRandom<TFloat>::CpuRandom(unsigned int seed)
+	CpuRandom<TFloat>::CpuRandom(unsigned long seed)
 	{
 		_seed = seed;
 		generator.seed(seed);

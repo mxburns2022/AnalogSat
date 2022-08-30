@@ -39,7 +39,7 @@ namespace analogsat
 		CpuRandom();
 
 		//initialize with the given random seed
-		CpuRandom(unsigned int seed);
+		CpuRandom(unsigned long seed);
 
 		~CpuRandom() override;
 		unsigned long getSeed() const {	return _seed;	};

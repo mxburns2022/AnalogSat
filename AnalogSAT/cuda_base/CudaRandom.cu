@@ -24,22 +24,23 @@ namespace analogsat
 	//initialize with a random seed (based on current time)
 	template <typename TFloat>
 	CudaRandom<TFloat>::CudaRandom()
-	{		
+	{
 		CurandSafe(curandCreateGenerator(&prngGPU, CURAND_RNG_PSEUDO_MTGP32));
-		CurandSafe(curandSetPseudoRandomGeneratorSeed(prngGPU, (unsigned long)std::chrono::system_clock::now().time_since_epoch().count()));		
+		CurandSafe(curandSetPseudoRandomGeneratorSeed(prngGPU, (unsigned long)std::chrono::system_clock::now().time_since_epoch().count()));
 	}
 
 	//initialize with the given random seed
 	template <typename TFloat>
-	CudaRandom<TFloat>::CudaRandom(unsigned int seed)
-	{		
+	CudaRandom<TFloat>::CudaRandom(unsigned long seed)
+	{
+		_seed = seed;
 		CurandSafe(curandCreateGenerator(&prngGPU, CURAND_RNG_PSEUDO_MTGP32));
-		CurandSafe(curandSetPseudoRandomGeneratorSeed(prngGPU, seed));		
+		CurandSafe(curandSetPseudoRandomGeneratorSeed(prngGPU, (unsigned long long)seed));
 	}
 
 	template <typename TFloat>
 	CudaRandom<TFloat>::~CudaRandom()
-	{		
+	{
 		curandDestroyGenerator(prngGPU);
 	}
 
@@ -49,13 +50,13 @@ namespace analogsat
 
 	template<>
 	void CudaRandom<float>::GenerateUniform(float* addr, int length)
-	{		
+	{
 		CurandSafe(curandGenerateUniform(prngGPU, addr, length));
 	}
 
 	template<>
 	void CudaRandom<double>::GenerateUniform(double* addr, int length)
-	{		
+	{
 		CurandSafe(curandGenerateUniformDouble(prngGPU, addr, length));
 	}
 

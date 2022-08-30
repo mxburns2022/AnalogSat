@@ -210,7 +210,7 @@ bool BenchRunner::RunAnalogsatCpu()
 	int m = problem.Get_M();
 
 	//function that is called every <batch> iterations
-	solver.SetCallback([&](CpuSatSolver<double>::Interface& solvr)->bool
+	solver.SetCallback([&](CpuSatSolver<double>::Interface& solvr, bool print = false)->bool
 	{
 		int violation = solvr.GetLastClauseViolationCount();
 		if (violation < minViolation) minViolation = violation;
@@ -218,7 +218,7 @@ bool BenchRunner::RunAnalogsatCpu()
 		double wall = solvr.GetElapsedWallTime();
 		int steps = solvr.GetStepCount();
 
-		if (steps % 1000 == 0)
+		if (steps % 1000 == 0 && print)
 		{
 			printf("  %d\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), solvr.GetLastStepSize(), violation, minViolation);
 		}
