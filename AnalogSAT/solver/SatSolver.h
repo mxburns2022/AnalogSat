@@ -17,7 +17,9 @@
 
 #ifndef ANALOGSAT_SATSOLVER_BASE_H
 #define ANALOGSAT_SATSOLVER_BASE_H
-
+#ifndef LIMIT_DURATION
+	#define LIMIT_DURATION //
+#endif
 #include <algorithm>
 #include <cstdlib>
 #include <chrono>
@@ -49,7 +51,7 @@ namespace analogsat
 		//type of the callback's argument
 		typedef SatSolver<TFloat, TState> Interface;
 
-		//require SAT and integrator to be passed as unique_ptr, 
+		//require SAT and integrator to be passed as unique_ptr,
 		//ownership will be taken to guarantee state consistency between the two objects being used for solving the SAT
 		SatSolver(std::unique_ptr<ISat<TFloat, TState>> _satPtr, std::unique_ptr<IODEInt<TFloat, TState>> _odeintPtr)
 		{
@@ -148,6 +150,13 @@ namespace analogsat
 			maxTime = _maxTime;
 		}
 
+		//set the maximum wall clock time (if exceeded, result will be SAT_MAXTIME_REACHED)
+		void SetTimeout(TFloat _timeout)
+		{
+			if (_timeout <= (TFloat)0.0) throw std::invalid_argument("Timeout must be positive");
+			timeout = _timeout;
+		}
+
 		//get the maximum number of ODE integration steps to take (if exceeded, result will be SAT_MAXSTEPS_REACHED)
 		int GetMaxSteps() const  { return maxSteps; }
 
@@ -229,7 +238,7 @@ namespace analogsat
 		std::unique_ptr<ISatState<TFloat, TState>> oldState, newState;
 
 
-		//callback 
+		//callback
 		CallbackFunction callbackFunc;
 		bool useCallback;
 
@@ -251,7 +260,7 @@ namespace analogsat
 		std::chrono::duration<float> duration;
 		std::clock_t cpustart, cpufinish, cpunow;
 
-
+		TFloat timeout;			//max wall clock time
 		TFloat maxTime;			//max continuous time
 		int batchSize;			//number of iterations to issue at once (between reporting status)
 		int maxSteps;			//maximum number of steps to take
@@ -309,8 +318,10 @@ namespace analogsat
 
 					//call the user function, check for user stop signal
 					if (!callbackFunc(*this)) { result = SAT_ODE_INTERRUPTED; break; }
-
-					//check for solution					
+#ifdef LIMIT_DURATION
+					if (GetElapsedWallTime() >= timeout) { result = SAT_MAXTIME_REACHED; break; }
+#endif
+					//check for solution
 					if (lastViolationCount == 0) { result = SAT_SOLUTION_FOUND; break; }
 				}
 			}
@@ -331,7 +342,7 @@ namespace analogsat
 				}
 			}
 
-			//final check 
+			//final check
 			if (result == SAT_UNKNOWN)
 			{
 				if (time >= maxTime) result = SAT_MAXTIME_REACHED;

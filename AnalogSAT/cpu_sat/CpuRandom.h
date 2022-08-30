@@ -31,17 +31,18 @@ namespace analogsat
 	private:
 		std::default_random_engine generator;
 		std::uniform_real_distribution<TFloat> rand;
+		unsigned long _seed;
 
 	public:
-		
+
 		//initialize with a random seed (based on current time)
 		CpuRandom();
 
 		//initialize with the given random seed
 		CpuRandom(unsigned int seed);
-		
-		~CpuRandom() override;
 
+		~CpuRandom() override;
+		unsigned long getSeed() const {	return _seed;	};
 		void GenerateUniform(TFloat* addr, int length) override;
 	};
 }

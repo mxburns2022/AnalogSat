@@ -39,13 +39,13 @@ void RunRamseySeries(Configuration conf)
 	{
 		R.push_back(atoi(token.c_str()));
 	}
-	
+
 	conf.EnsureProblemFolder();
 	conf.EnsureResultFolder();
 
 	RamseyRunner rr(conf);
-	char matrixname[1024];	
-	
+	char matrixname[1024];
+
 	for (int N = (int)conf.nStart; N <= (int)conf.nEnd; N++)
 	{
 		rr.Configure(R, N);
@@ -59,8 +59,8 @@ void RunRamseySeries(Configuration conf)
 				rcm.WriteColorMatrix(matrixname, rr.GetSolution());
 			}
 		}
-	}	
-	
+	}
+
 }
 
 // configure solver, ctds, and rk parameters
@@ -72,6 +72,7 @@ void RamseyRunner::Configure_Solver(ISat<TFloat, TState>* ctds, SatSolver<TFloat
 	solver->SetProblem(problem);
 	solver->SetMaxTime(conf.tmax);
 	solver->SetMaxSteps(conf.stepmax);
+	solver->SetTimeout(conf.timeout);
 	solver->SetBatchSize(conf.batch);
 }
 
@@ -95,7 +96,7 @@ bool RamseyRunner::RunMinisat()
 	bool solved = strcmp(results.answer, "SATISFIABLE") == 0;
 
 	lastSolveTime = clock.GetTotalElapsedTime();
-	
+
 	//make solution vector (analogsat compatible) manually
 	solution.resize(problem.Get_N());
 	for (int item : results.solution)
@@ -156,7 +157,7 @@ bool RamseyRunner::RunAnalogsatCpu()
 
 	//Solver
 	CpuSatSolver<double> solver(ctds, rk);
-	
+
 	//Configure
 	Configure_Solver(ctds, &solver);
 
@@ -175,7 +176,7 @@ bool RamseyRunner::RunAnalogsatCpu()
 		if (violation < minViolation) minViolation = violation;
 
 		double wall = solvr.GetElapsedWallTime();
-		int steps = solvr.GetStepCount();		
+		int steps = solvr.GetStepCount();
 
 		if (steps % 100 == 0)
 		{
@@ -252,7 +253,7 @@ bool RamseyRunner::RunAnalogsatGpu()
 	else runtime_error("unknorn solver family");
 
 	//time integrator
-	CudaRungeKutta<double>* rk = new CudaRungeKutta<double>();	
+	CudaRungeKutta<double>* rk = new CudaRungeKutta<double>();
 	rk->SetEpsilon(conf.eps);
 
 	//Solver
@@ -260,7 +261,7 @@ bool RamseyRunner::RunAnalogsatGpu()
 
 	//Configure
 	Configure_Solver(ctds, &solver);
-	
+
 	//Initial condition
 	if (rand_gpu == NULL) rand_gpu = new CudaRandom<double>();
 	solver.SetRandomInitialState(*rand_gpu);
@@ -324,7 +325,7 @@ RamseyRunner::RamseyRunner(Configuration _conf)
 	conf.EnsureResultFolder();
 	conf.EnsureProblemFolder();
 
-	//defaults	
+	//defaults
 	rand_cpu = NULL; //make them on demand (so CPU only code can run this without GPU)
 	rand_gpu = NULL;
 }
@@ -345,7 +346,7 @@ void RamseyRunner::Configure(vector<int> R, int _NN)
 
 	//load
 	if (FileExists(infile))
-	{		
+	{
 		CnfReader r(infile);
 		r.Read(problem);
 		NN = _NN;
@@ -358,7 +359,7 @@ void RamseyRunner::Configure(vector<int> R, int _NN)
 	alpha = (double)M / (double)N;
 }
 
-bool RamseyRunner::RunSample() 
+bool RamseyRunner::RunSample()
 {
 	printf("Running Ramsey CNF with K=%d, N=%d, M=%d\n", K, N, M);
 
@@ -366,7 +367,7 @@ bool RamseyRunner::RunSample()
 	{
 	case MINISAT:
 		printf("MINISAT:\n");
-		return RunMinisat();		
+		return RunMinisat();
 		break;
 
 	case ANALOGSAT_CPU:

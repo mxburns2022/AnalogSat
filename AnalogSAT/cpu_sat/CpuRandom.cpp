@@ -25,12 +25,14 @@ namespace analogsat
 	template<typename TFloat>
 	CpuRandom<TFloat>::CpuRandom()
 	{
-		generator.seed((unsigned long)std::chrono::system_clock::now().time_since_epoch().count());
+		_seed = (unsigned long)std::chrono::system_clock::now().time_since_epoch().count();
+		generator.seed(_seed);
 	}
-	
+
 	template<typename TFloat>
 	CpuRandom<TFloat>::CpuRandom(unsigned int seed)
 	{
+		_seed = seed;
 		generator.seed(seed);
 	}
 

@@ -64,6 +64,7 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 	CudaSatSolver<double> solver(ctds, rk);
 	solver.SetProblem(problem);
 	solver.SetMaxTime(conf.tmax);  //should be more than enough
+	solver.SetTimeout(conf.timeout);
 	solver.SetMaxSteps(conf.stepmax);
 	solver.SetBatchSize(conf.batch);
 
@@ -101,7 +102,7 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 		double wall = solvr.GetElapsedWallTime();
 		int steps = solvr.GetStepCount();
 
-		printf("  %d\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), solvr.GetLastStepSize(), violation, minViolation);
+		printf("  %d\t%5.4lf\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), wall, solvr.GetLastStepSize(), violation, minViolation);
 
 		//save CNFRunner
 		if (conf.trajectory) WriteState(f, n + m, state, solvr);
@@ -155,25 +156,31 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 	CpuSatSolver<double> solver(ctds, rk);
 	solver.SetProblem(problem);
 	solver.SetMaxTime(conf.tmax);  //should be more than enough
+	solver.SetTimeout(conf.timeout);
 	solver.SetMaxSteps(conf.stepmax);
-	solver.SetBatchSize(conf.batch);	
+	solver.SetBatchSize(conf.batch);
 
 	//init state
-	int minViolation = problem.Get_M();	
+	int minViolation = problem.Get_M();
 	int n = problem.Get_N();
 	int m = problem.Get_M();
 	vector<double> state(n + m);
-
 	//Random initial condition
-	CpuRandom<double> rand;
-	solver.SetRandomInitialState(rand);
+	if(conf.seed != 0) {
+		CpuRandom<double> rand(conf.seed);
+		solver.SetRandomInitialState(rand);
+
+	}else{
+		CpuRandom<double> rand;
+		solver.SetRandomInitialState(rand);
+	}
 
 	//CNFRunner file
 	FILE *f = NULL;
 	if (conf.trajectory)
 	{
 		char fname[1024];
-		string problemName = GetFileNameWithoutExtension(GetFileNameWithoutPath(conf.cnf_file));		
+		string problemName = GetFileNameWithoutExtension(GetFileNameWithoutPath(conf.cnf_file));
 		sprintf(fname, "%s/%s_traj_%s.dat", conf.resultFolder, problemName.c_str(), familySuffix);
 		f = fopen(fname, "w");
 		if (f == NULL) throw runtime_error("could not open CNFRunner output file");
@@ -192,7 +199,7 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 		double wall = solvr.GetElapsedWallTime();
 		int steps = solvr.GetStepCount();
 
-		printf("  %d\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), solvr.GetLastStepSize(), violation, minViolation);
+		printf("  %d\t%5.4lf\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), wall, solvr.GetLastStepSize(), violation, minViolation);
 
 		//save CNFRunner
 		if (conf.trajectory) WriteState(f, n + m, state, solvr);
@@ -202,7 +209,7 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 
 	//make it go
 	SatResult result = solver.Solve();
-	
+
 	//close CNFRunner output
 	if (conf.trajectory) fclose(f);
 
@@ -230,7 +237,7 @@ SatResult SolveUsingMinisat(const SatProblem& problem, const Configuration& conf
 		return clock.GetTotalElapsedTime() < conf.timeout; //seconds
 	});
 
-	clock.Stop();	
+	clock.Stop();
 	SatResult result = strcmp(results.answer, "SATISFIABLE") == 0 ? SatResult::SAT_SOLUTION_FOUND : SatResult::SAT_UNKNOWN;
 
 	//copy solution if any
@@ -247,7 +254,7 @@ SatResult SolveUsingMinisat(const SatProblem& problem, const Configuration& conf
 void RunCnf(Configuration conf)
 {
 	//folder
-	conf.EnsureResultFolder();	
+	conf.EnsureResultFolder();
 
 	//read input
 	SatProblem problem;

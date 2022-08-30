@@ -54,11 +54,11 @@ void RunBenchSeries(Configuration conf, vector<double> powers)
 	vector<int> nValues = GetNValues(powers);
 
 	// runner
-	BenchRunner bench(conf);	
+	BenchRunner bench(conf);
 
 	//cycle through N values one by one
 	for (int n : nValues)
-	{		
+	{
 		for (int s = conf.sampleStart; s < conf.sampleEnd; s++)
 		{
 			bench.Configure(n, s);
@@ -120,13 +120,14 @@ void RunSpeedtest(Configuration conf, vector<double> powers, double walltimeout)
 //hyperparameters for the CTDS
 template <typename TFloat, typename TState>
 void BenchRunner::Configure_Solver(ISat<TFloat, TState>* ctds, SatSolver<TFloat, TState>* solver)
-{	
+{
 	//dynamics
 	ctds->Set_B(conf.bias);
 
 	//solver
 	solver->SetProblem(problem);
 	solver->SetMaxTime(conf.tmax);
+	solver->SetTimeout(conf.timeout);
 	solver->SetMaxSteps(conf.stepmax);
 	solver->SetBatchSize(conf.batch);
 }
@@ -156,7 +157,7 @@ bool BenchRunner::RunMinisat()
 	if (solved)
 	{
 		// Output Format: sampleName, CPUID, solver, answer, walltime, cputime, rhscount (only for analogsat)
-		string cpuid = GetCpuName();		
+		string cpuid = GetCpuName();
 		FILE *f = fopen(outfile, "a");
 		fprintf(f, "%s\t%s\tminisat\t%s\t%lf\t%lf\t0\n",
 			problemName,
@@ -186,12 +187,12 @@ bool BenchRunner::RunAnalogsatCpu()
 		strcpy(solver_suffix, "orig");
 		break;
 	case ANALOGSAT_TANH:
-		ctds = new CpuSatTanh<double>();		
+		ctds = new CpuSatTanh<double>();
 		strcpy(solver_suffix, "tanh");
 		break;
 	default:
 		throw runtime_error("unknorn solver family");
-	}	
+	}
 
 	//Solver
 	CpuSatSolver<double> solver(ctds, rk);
@@ -216,7 +217,7 @@ bool BenchRunner::RunAnalogsatCpu()
 
 		double wall = solvr.GetElapsedWallTime();
 		int steps = solvr.GetStepCount();
-		
+
 		if (steps % 1000 == 0)
 		{
 			printf("  %d\t%5.4lf\t%e\t%d\t%d\n", steps, solvr.GetElapsedTime(), solvr.GetLastStepSize(), violation, minViolation);
@@ -351,7 +352,7 @@ bool BenchRunner::RunAnalogsatGpu()
 BenchRunner::BenchRunner(Configuration _conf)
 	: conf(_conf)
 {
-	//create the folder for results		
+	//create the folder for results
 	//if (!DirectoryExists(conf.resultFolder)) CreateDir(conf.resultFolder);
 	conf.EnsureResultFolder();
 
@@ -367,7 +368,7 @@ BenchRunner::BenchRunner(Configuration _conf)
 BenchRunner::~BenchRunner()
 {
 	NULLDEL(rand_cpu);
-	NULLDEL(rand_gpu);	
+	NULLDEL(rand_gpu);
 }
 
 double BenchRunner::GetLastSolveTime() const
@@ -381,7 +382,7 @@ void BenchRunner::Configure(int _N, int sampleID)
 {
 	//if the config did not change (only possibly the sample), do not bother reloading some stuff
 	bool sameConfig = (N == _N);
-	N = _N;	
+	N = _N;
 	M = (int)(conf.alpha * N);
 	int a = (int)(conf.alpha * 100); //for file naming
 
@@ -405,7 +406,7 @@ void BenchRunner::Configure(int _N, int sampleID)
 		//load the existing problem
 		CnfReader r(infile);
 		r.Read(problem);
-		cnf_exists = true; 
+		cnf_exists = true;
 	}
 	else
 	{

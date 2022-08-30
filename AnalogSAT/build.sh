@@ -1,7 +1,7 @@
 #!/bin/bash
-GEN1=arch=compute_60,code=sm_60
+GEN1=arch=compute_70,code=sm_70
 GEN2=arch=compute_61,code=sm_61
-GEN3=arch=compute_70,code=sm_70
+GEN3=arch=compute_80,code=sm_80
 echo $GEN1
 echo $GEN2
 echo $GEN3

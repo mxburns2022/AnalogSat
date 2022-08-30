@@ -6,7 +6,7 @@
 //configuration of the analog SAT solver frontend
 //not all fields are used by all methods
 class Configuration
-{	
+{
 public:
 	char problemFolder[1024];	//random problems are stored here when created
 	char resultFolder[1024];	//results of running problems are stored here (regardless of the path in cnf_file)
@@ -19,7 +19,7 @@ public:
 	int cudadevice;		//used in CudaSetDevice()
 	int solverVersion;	//for gpu: v1, v2, or v3
 	bool minisat;		//use minisat (disable any CUDA, ignore related parameters, run on CPU)
-
+	unsigned long seed; //manually provided seed
 	double eps;		//adaptive time step relative error tolerance
 	double tmax;	//analog time limit
 	double bias;	//bias term for highly symmetric SAT problems
@@ -28,12 +28,12 @@ public:
 	int stepmax;	//max number of steps in time-integration
 	int batch;		//number of steps between checks for SAT solution
 
-	double nStart;	//problem size start value (N = 2^nStart * 10 for random, used directly for Ramsey) 
+	double nStart;	//problem size start value (N = 2^nStart * 10 for random, used directly for Ramsey)
 	double nEnd;	//problem size end value (N = 2^nEnd * 10 for random, used directly for Ramsey)
 	double nStep;	//problem size step value
 
 	double alpha;		//clause to variable ratio, for random problem benchmarks
-	int k;				//number of literals per clause, for random problems	
+	int k;				//number of literals per clause, for random problems
 	int sampleStart;	//start index of samples (inclusive)
 	int sampleEnd;		//end index of samples (exclusive)
 
@@ -47,7 +47,7 @@ public:
 
 	void EnsureSolverType();	//set the type (SolverType) based on the configured settings
 	void EnsureSolverFamily();	//set the family (AnalogSolverFamily) based on the configured settings
-	
+
 	void EnsureProblemFolder();	//make sure the problem folder exists
 	void EnsureResultFolder();	//make sure the result folder exists
 

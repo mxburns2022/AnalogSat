@@ -37,7 +37,8 @@ T StringToValue(const char* str) { return (T)0; }
 
 template<>
 int StringToValue<int>(const char* str) { return atoi(str); }
-
+template<>
+unsigned long StringToValue<unsigned long>(const char* str) { char buff[40]; char* ptr = buff; return strtoul(str, &ptr, 10); }
 template<>
 double StringToValue<double>(const char* str) { return atof(str); }
 
@@ -51,7 +52,6 @@ bool ParseOption(string option, const vector<string>& args, T& target, size_t& i
 		fprintf(stderr, "low level parse error\n");
 		exit(-1);
 	}
-
 	if (args[i] != option) return false;
 
 	if (i >= args.size() - 1) //require: at least 2 more arguments available
@@ -65,6 +65,8 @@ bool ParseOption(string option, const vector<string>& args, T& target, size_t& i
 	}
 
 	i++;
+	if (option == "-seed")
+		printf("String seed %lu\n", StringToValue<T>(args[i].c_str()));
 	T value = StringToValue<T>(args[i].c_str());
 	if (value < min || value > max)
 	{
@@ -171,12 +173,13 @@ void ParseOptions(const vector<string>& args, Configuration& conf, size_t ii)
 		else if (ParseOption<bool>("-trajectory", args, conf.trajectory, ii, false, false)) continue;
 		else if (ParseOption<bool>("-force_save_cnf", args, conf.force_save_cnf, ii, false, false)) continue;
 		else if (ParseOption<bool>("-tanh", args, conf.use_tanh, ii, false, false)) continue;
-		else if (ParseOption<bool>("-minisat", args, conf.minisat, ii, false, false)) continue;
-		else if (ParseOption<bool>("-rerun", args, conf.rerun, ii, false, false)) continue;		
+		else if (ParseOption<bool>("-minisat", args, conf.minisat, ii,false, false)) continue;
+		else if (ParseOption<unsigned long>("-seed", args, conf.seed, ii,  0, 0xFFFFFFFFFFFFFFFFu)) continue;
+		else if (ParseOption<bool>("-rerun", args, conf.rerun, ii, false, false)) continue;
 		else if (ParseOption<double>("-tmax", args, conf.tmax, ii, 0, 1e80)) continue;
 		else if (ParseOption<double>("-bias", args, conf.bias, ii, 0.0, 1e6)) continue;
 		else if (ParseOption<double>("-timeout", args, conf.timeout, ii, 0, 1e80)) continue;
-		else if (ParseOption<int>("-k", args, conf.k, ii, 2, 256)) continue;		
+		else if (ParseOption<int>("-k", args, conf.k, ii, 2, 256)) continue;
 		else if (ParseOption<int>("-stepmax", args, conf.stepmax, ii, 0, INT_MAX)) continue;
 		else if (ParseOption<int>("-batch", args, conf.batch, ii, 1, INT_MAX)) continue;
 		else if (ParseOption<double>("-eps", args, conf.eps, ii, 1e-8, 1e-1)) continue;
@@ -190,7 +193,7 @@ void ParseOptions(const vector<string>& args, Configuration& conf, size_t ii)
 		else if (ParseOption<char>("-problemfolder", args, conf.problemFolder[0], ii, 'c', 'c')) continue;
 		else if (ParseOption<int>("-version", args, conf.solverVersion, ii, 1, 3)) continue;
 		else
-		{			
+		{
 			printf("bad argument: %s\n", args[ii].c_str());
 			throw runtime_error("options parsing error");
 		}
@@ -204,7 +207,7 @@ int main(int argc, char** argv)
 	{
 		//default configuration -------------
 		Configuration conf;
-		
+
 		//ctds params
 		conf.eps = 1e-6;
 		conf.tmax = 1e8;
@@ -220,6 +223,7 @@ int main(int argc, char** argv)
 
 		//benchmark control
 		conf.minisat = false;
+		conf.seed = 0;
 		conf.trajectory = false;
 		conf.rerun = false;
 		conf.force_save_cnf = false;
@@ -240,10 +244,10 @@ int main(int argc, char** argv)
 		strcpy(conf.ramsey, "");
 		conf.ramseycircular = false;
 
-		//folders		
+		//folders
 		strcpy(conf.problemFolder, ".");
 		strcpy(conf.resultFolder, ".");
-		
+
 		//-------------------------------------
 
 		//grab all args into vector of strings
@@ -278,6 +282,7 @@ int main(int argc, char** argv)
 			printf("-version <N>  AnalogSAT GPU solver version (1/2/3) [1]\n");
 			printf("-nogpu        Use the AnalogSAT CPU solver, do not call any GPU functions\n");
 			printf("-minisat      Use the MiniSat solver (CPU), do not call any GPU functions\n");
+			printf("-seed      	  Seed to use for random generation\n");
 			printf("-usegpu <N>   Use CUDA device number N (via CudaSetDevice(N)) (0::99) [0]\n");
 			printf("-tanh         Use the alternative CTDS formulation, which is based on the\n");
 			printf("              Tanh formula for evolving the auxiliary variables.\n");
@@ -358,9 +363,9 @@ int main(int argc, char** argv)
 			printf("\n");
 			return 0;
 		}
-		
+
 		//start parsing, first get the command
-		FrontendCommand command = FrontendCommand::UNKNOWN;		
+		FrontendCommand command = FrontendCommand::UNKNOWN;
 		size_t ii = 1;
 		bool dummy;
 
@@ -400,7 +405,7 @@ int main(int argc, char** argv)
 		case FrontendCommand::BENCH: //benchmark on random problems
 			{
 				vector<double> powers;
-				for (double n = conf.nStart; n < conf.nEnd + 1e-3; n += conf.nStep) 
+				for (double n = conf.nStart; n < conf.nEnd + 1e-3; n += conf.nStep)
 					powers.push_back(n); //end+1e-3 against roundoff errors
 
 				RunBenchSeries(conf, powers);
@@ -429,7 +434,7 @@ int main(int argc, char** argv)
 			printf("Not yet implemented\n");
 			break;
 		}
-	
+
 		printf("All done.\n");
 	}
 	catch (exception &ex)
