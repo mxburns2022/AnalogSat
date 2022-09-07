@@ -46,7 +46,7 @@ namespace analogsat
 		//grab the desired section of clauses
 		int idx = clauses[i]; //coalesced load
 
-		//transform to get state index, and keep the floating sign	
+		//transform to get state index, and keep the floating sign
 		TFloat sign = idx < 0 ? (TFloat)-1.0 : (TFloat)1.0;
 		idx *= idx < 0 ? -1 : 1;
 
@@ -86,7 +86,7 @@ namespace analogsat
 			//auxiliary rhs
 			int offset = blockIdx.x * clauses_per_block + threadIdx.x + cons.N + 2;
 			TFloat amm = state[offset];					//load (coalesced)
-			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)		
+			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)
 
 			//replace km with am in shared
 			sh_state[threadIdx.x] = amm;		//store shared (no conflict)
@@ -116,7 +116,7 @@ namespace analogsat
 		//grab the desired section of clauses
 		int idx = cons.GC[i]; //coalesced load
 
-		//transform to get state index, and keep the floating sign	
+		//transform to get state index, and keep the floating sign
 		TFloat sign = idx < 0 ? (TFloat)-1.0 : (TFloat)1.0;
 		idx *= idx < 0 ? -1 : 1;
 
@@ -156,7 +156,7 @@ namespace analogsat
 			//auxiliary rhs
 			int offset = blockIdx.x * clauses_per_block + threadIdx.x + cons.N + 2;
 			TFloat amm = state[offset];					//load (coalesced)
-			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)		
+			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)
 
 			//replace km with am in shared
 			sh_state[threadIdx.x] = amm;		//store shared (no conflict)
@@ -166,7 +166,7 @@ namespace analogsat
 		//broadcast am's to each thread
 		TFloat am = sh_state[threadDivK];
 
-		//calculate and write result		
+		//calculate and write result
 		TFloat re = (TFloat)2.0 * kmi * km * am * sign;
 
 		//write result
@@ -204,7 +204,7 @@ namespace analogsat
 		cons.KNORM = (TFloat)pow(2.0, -k);
 		cons.N = n;
 		cons.M = m_padded;
-		cons.GC = gC;		
+		cons.GC = gC;
 		cons.MEAN_AM = gMeanAm;
 		cons.ALPHA = (TFloat)m / (TFloat)n;
 	}
@@ -229,7 +229,11 @@ namespace analogsat
 		n = m = k = 0;
 		b = 0;
 	}
-
+	template<typename TFloat>
+	void CudaSat2<TFloat>::SetAuxCap(TFloat _cap)
+	{
+		auxCap = _cap;
+	}
 	template <typename TFloat>
 	CudaSat2<TFloat>::~CudaSat2()
 	{
@@ -275,7 +279,7 @@ namespace analogsat
 
 		clauses_per_block = blocksize / k;
 
-		//total number of clauses with padding will be the nearest multiple of m to clauses_per_block	
+		//total number of clauses with padding will be the nearest multiple of m to clauses_per_block
 		m_padded = (int)ceil((double)m / clauses_per_block) * clauses_per_block;
 
 		CudaSafe(cudaMalloc(&gC, m_padded * k * sizeof(int)));
@@ -284,7 +288,7 @@ namespace analogsat
 		CudaSafe(cudaMalloc(&gReduceBuf2, sizeof(int) * MAX_BLOCK_DIM_SIZE));
 		CudaSafe(cudaMalloc(&gMeanAm, sizeof(TFloat)));
 
-		//convertBuf.resize(m); //here, so no need later	
+		//convertBuf.resize(m); //here, so no need later
 		C.resize(m_padded * k);
 
 	}
@@ -313,7 +317,7 @@ namespace analogsat
 		//reset clauses (creates zero padding)
 		memset(C.data(), 0, C.size() * sizeof(int));
 
-		//order columns by first row index	
+		//order columns by first row index
 		//clauseOrder = sort_indices<vector<int>>(CC, &ColComparator); //this should be helpful for CPU by increasing cache locality
 
 		//default ordering
@@ -369,8 +373,8 @@ namespace analogsat
 
 		cudaMemcpy(state, &minusone, sizeof(double), cudaMemcpyHostToDevice);	//always false
 		cudaMemcpy(state + 1, &one, sizeof(double), cudaMemcpyHostToDevice);	//always true
-		
-		//uniform rand		
+
+		//uniform rand
 		random.GenerateUniform(state + 2, n + m);
 		CudaSafe(cudaGetLastError());
 
@@ -417,17 +421,17 @@ namespace analogsat
 	void CudaSat2<TFloat>::GetDerivatives(IBasicState& dxdt, const IBasicState& state, const TFloat time)
 	{
 		if (k == 0) throw runtime_error("SAT problem has not been set");
-			
+
 		//reset the global mean am
 		if (b > (TFloat)0) CudaSafe(cudaMemsetAsync(gMeanAm, 0, sizeof(TFloat)));
-		
+
 		dxdt.SetZero();
-		cons.B = b * cons.KNORM * cons.KNORM; // premultiply the bias term with normalization		
+		cons.B = b * cons.KNORM * cons.KNORM; // premultiply the bias term with normalization
 
 		//call the RHS kernel
 		int shmem2 = k * clauses_per_block * sizeof(TFloat);
 		KernelCalculateRHS2_mod<TFloat> KERNEL_ARGS3(blocks, threads, shmem2)(cons, state, dxdt, k, clauses_per_block);
-		
+
 		if (b > (TFloat)0)
 		{
 			//add the sine term for each variable

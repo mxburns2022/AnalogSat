@@ -34,7 +34,7 @@ namespace analogsat
 	template <typename TFloat>
 	__global__ void KernelTanhRHSv3(CudaSatArgs<TFloat> cons, TFloat* state, TFloat* rhs, TFloat* collect, int k, int clauses_per_block, TFloat q)
 	{
-		TFloat* sh_state = reinterpret_cast<TFloat*>(shmemx);		
+		TFloat* sh_state = reinterpret_cast<TFloat*>(shmemx);
 
 		int i = blockIdx.x * blockDim.x + threadIdx.x;	//index in clause-literals
 		int threadDivK = threadIdx.x / k;				//which clause (out of the clauses processed by this block)
@@ -43,7 +43,7 @@ namespace analogsat
 		//grab the desired section of clauses
 		int idx = cons.GC[i]; //coalesced load
 
-		//transform to get state index, and keep the floating sign	
+		//transform to get state index, and keep the floating sign
 		TFloat sign = idx < 0 ? (TFloat)-1.0 : (TFloat)1.0;
 		idx *= idx < 0 ? -1 : 1;
 
@@ -84,7 +84,7 @@ namespace analogsat
 			//auxiliary rhs
 			int offset = blockIdx.x * clauses_per_block + threadIdx.x + cons.N + 2;
 			TFloat amm = state[offset];					//load (coalesced)
-			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)		
+			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)
 
 			//replace km with am in shared
 			sh_state[threadIdx.x] = amm;		//store shared (no conflict)
@@ -139,7 +139,7 @@ namespace analogsat
 
 		if (b > (TFloat)0)
 		{
-			//step 3: add the sine term for each variable (using the deterministic mean from step 0)		
+			//step 3: add the sine term for each variable (using the deterministic mean from step 0)
 			dim3 blocks2((int)ceil((float)(n + 2) / threads.x));
 			KernelAdjustState3<TFloat> KERNEL_ARGS2(blocks2, threads)(cons, dxdt, state);
 		}

@@ -178,6 +178,7 @@ void ParseOptions(const vector<string>& args, Configuration& conf, size_t ii)
 		else if (ParseOption<double>("-bias", args, conf.bias, ii, 0.0, 1e6)) continue;
 		else if (ParseOption<double>("-timeout", args, conf.timeout, ii, 0, 1e80)) continue;
 		else if (ParseOption<int>("-k", args, conf.k, ii, 2, 256)) continue;
+		else if (ParseOption<double>("-auxCap", args, conf.auxCap, ii, 0.0, 1e80)) continue;
 		else if (ParseOption<int>("-stepmax", args, conf.stepmax, ii, 0, INT_MAX)) continue;
 		else if (ParseOption<int>("-batch", args, conf.batch, ii, 1, INT_MAX)) continue;
 		else if (ParseOption<double>("-eps", args, conf.eps, ii, 1e-8, 1e-1)) continue;
@@ -210,7 +211,7 @@ int main(int argc, char** argv)
 		conf.eps = 1e-6;
 		conf.tmax = 1e8;
 		conf.bias = 0.0;
-
+		conf.auxCap = 2.0;
 		//solver params
 		conf.family = AnalogSolverFamily::ANALOGSAT_ORIGINAL;
 		conf.use_tanh = false;
@@ -292,6 +293,8 @@ int main(int argc, char** argv)
 			printf("-eps <F>      Relative error tolerance parameter for the adaptive time stepping\n");
 			printf("              of the ODE integrator method (1e-8::1e-1) [1e-6]\n");
 			printf("-batch <N>    Number of discrete steps to take at once before the current state\n");
+			printf("              is checked for a SAT solution (1::INT_MAX) [50]\n");
+			printf("-auxCap <F>    Cap for auxiliary variable values (0.0:1e80)[2.0]\n");
 			printf("              is checked for a SAT solution (1::INT_MAX) [50]\n");
 			printf("\n");
 			printf("Options for 'run' command:\n");

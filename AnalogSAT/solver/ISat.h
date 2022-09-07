@@ -34,7 +34,7 @@ namespace analogsat
 	public:
 		virtual ~ISat() {};
 
-		//set the problem for this SAT system. 
+		//set the problem for this SAT system.
 		virtual void SetProblem(const SatProblem& problem) = 0;
 
 		//number of SAT variables
@@ -48,9 +48,11 @@ namespace analogsat
 
 		//get the sine term prefactor
 		virtual TFloat Get_B() const = 0;
-		
+
 		//set the sine term prefactor
 		virtual void Set_B(TFloat _b) = 0;
+		//set the aux variable cap
+		virtual void SetAuxCap(TFloat _cap) = 0;
 
 		//make a new sat state
 		virtual ISatState<TFloat, TState>* MakeState() const = 0;
@@ -58,10 +60,10 @@ namespace analogsat
 		//Side note: MakeState() from base can be overridden by ISatState<TFloat, TState>* MakeState() because ISatState<> is derived from IODEState<>.
 		//Without derivation, one would hit a wall, since template classes in c++ are invariant (not covariant).
 
-		//write random state values into the given ISatState, using the given random generator.		
+		//write random state values into the given ISatState, using the given random generator.
 		virtual void SetRandomState(ISatState<TFloat, TState>& state, ISatRandom<TFloat>& random) = 0;
 
-		//create a new random sat state 		
+		//create a new random sat state
 		ISatState<TFloat, TState>* MakeRandomState(ISatRandom<TFloat>& random) //implementation in an interface.. well fine.
 		{
 			ISatState<TFloat, TState>* state = MakeState();

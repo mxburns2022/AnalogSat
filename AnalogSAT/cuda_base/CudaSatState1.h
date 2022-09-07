@@ -31,7 +31,7 @@ namespace analogsat
 	class CudaSatState1 : public CudaSatStateImpl<TFloat>
 	{
 	public:
-		
+
 		//ctor with clause ordering
 		CudaSatState1(int _N, int _M, const std::vector<int>& _clauseOrder)
 			: CudaSatStateImpl<TFloat>(_N, _M, _clauseOrder, 1, 0)
@@ -50,7 +50,7 @@ namespace analogsat
 		CudaSatState1(const ISatState<TFloat, CudaODEState<TFloat>>& other)
 			: CudaSatStateImpl<TFloat>(other, 1, 0)
 		{
-			Allocate();			
+			Allocate();
 			CopyFromGeneric(other);
 		}
 
@@ -64,7 +64,7 @@ namespace analogsat
 
 		~CudaSatState1() override
 		{
-			SAFEDEL(gData);			
+			SAFEDEL(gData);
 		}
 
 	protected:

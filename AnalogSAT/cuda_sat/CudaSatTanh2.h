@@ -45,7 +45,7 @@ namespace analogsat
 		using CudaSat2<TFloat>::blocks;
 		using CudaSat2<TFloat>::threads;
 		using CudaSat2<TFloat>::clauses_per_block;
-		using CudaSat2<TFloat>::Free;		
+		using CudaSat2<TFloat>::Free;
 
 	protected:
 

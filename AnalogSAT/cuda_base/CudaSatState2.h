@@ -70,7 +70,7 @@ namespace analogsat
 		using CudaSatStateImpl<TFloat>::N;
 		using CudaSatStateImpl<TFloat>::M;
 		using CudaSatStateImpl<TFloat>::gData;		//cuda array
-		using CudaSatStateImpl<TFloat>::arrayOffset;	//memory offset of N and M state vars in the cuda arrays | demand it to be set in ctor		
+		using CudaSatStateImpl<TFloat>::arrayOffset;	//memory offset of N and M state vars in the cuda arrays | demand it to be set in ctor
 		using CudaSatStateImpl<TFloat>::padding;
 		using CudaSatStateImpl<TFloat>::GetAllocSize;
 
@@ -98,11 +98,11 @@ namespace analogsat
 		void Allocate() //called from ctor
 		{
 			size = GetAllocSize();
-			CudaSafe(cudaMalloc(&gData, size * sizeof(TFloat)));			
+			CudaSafe(cudaMalloc(&gData, size * sizeof(TFloat)));
 			CudaSafe(cudaMemcpyAsync(&gData[0], &minusone, sizeof(TFloat), cudaMemcpyHostToDevice));
 			CudaSafe(cudaMemcpyAsync(&gData[1], &one, sizeof(TFloat), cudaMemcpyHostToDevice));
 		}
-		
+
 	};
 }
 

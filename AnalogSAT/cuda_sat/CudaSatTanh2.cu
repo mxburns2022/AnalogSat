@@ -40,7 +40,7 @@ namespace analogsat
 		//grab the desired section of clauses
 		int idx = cons.GC[i]; //coalesced load
 
-		//transform to get state index, and keep the floating sign	
+		//transform to get state index, and keep the floating sign
 		TFloat sign = idx < 0 ? (TFloat)-1.0 : (TFloat)1.0;
 		idx *= idx < 0 ? -1 : 1;
 
@@ -80,7 +80,7 @@ namespace analogsat
 			//auxiliary rhs
 			int offset = blockIdx.x * clauses_per_block + threadIdx.x + cons.N + 2;
 			TFloat amm = state[offset];					//load (coalesced)
-			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)		
+			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)
 
 			//replace km with am in shared
 			sh_state[threadIdx.x] = amm;		//store shared (no conflict)
@@ -90,7 +90,7 @@ namespace analogsat
 		//broadcast am's to each thread
 		TFloat am = sh_state[threadDivK];
 
-		//calculate and write result		
+		//calculate and write result
 		TFloat re = abs(kmi) * am * sign * tanh(q * st);
 
 		//write result
@@ -149,7 +149,7 @@ namespace analogsat
 		if (b > (TFloat)0) CudaSafe(cudaMemsetAsync(gMeanAm, 0, sizeof(TFloat)));
 
 		dxdt.SetZero();
-		cons.B = b * cons.KNORM * cons.KNORM; // premultiply the bias term with normalization	
+		cons.B = b * cons.KNORM * cons.KNORM; // premultiply the bias term with normalization
 
 		//call the RHS kernel
 		int shmem2t = k * clauses_per_block * sizeof(TFloat);

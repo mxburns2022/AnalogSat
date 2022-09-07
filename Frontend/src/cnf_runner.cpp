@@ -59,7 +59,6 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 	//make integrator
 	CudaRungeKutta<double>* rk = new CudaRungeKutta<double>();
 	rk->SetEpsilon(conf.eps);
-
 	//Solver setup
 	CudaSatSolver<double> solver(ctds, rk);
 	solver.SetProblem(problem);
@@ -67,7 +66,6 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 	solver.SetTimeout(conf.timeout);
 	solver.SetMaxSteps(conf.stepmax);
 	solver.SetBatchSize(conf.batch);
-
 	//init state
 	int minViolation = problem.Get_M();
 	int n = problem.Get_N();
@@ -78,11 +76,12 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 		//Random initial condition
 		CudaRandom<double> rand;
 		solver.SetRandomInitialState(rand);
-		printf("\n");
+		printf("New random seed %lu\n", rand.getSeed());
 	}else{
 		//Use provided seed
 		CudaRandom<double> rand(conf.seed);
 		solver.SetRandomInitialState(rand);
+		printf("Given random seed %lu\n", rand.getSeed());
 	}
 
 	//CNFRunner file
@@ -119,7 +118,9 @@ SatResult SolveOnGpu(const SatProblem& problem, const Configuration& conf, vecto
 
 	//make it go
 	SatResult result = solver.Solve();
-
+	printf("  %d\t%5.4lf\t%5.4lf\t%e\t%d\t%d\n", solver.GetStepCount(),
+												 solver.GetElapsedTime(), solver.GetElapsedWallTime(),
+												 solver.GetLastStepSize(), solver.GetLastClauseViolationCount(), minViolation);
 	//close CNFRunner output
 	if (conf.trajectory) fclose(f);
 
@@ -154,6 +155,7 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 	}
 
 	ctds->Set_B(conf.bias);
+	ctds->SetAuxCap(conf.auxCap);
 
 	//make integrator
 	CpuRungeKutta<double>* rk = new CpuRungeKutta<double>();
@@ -176,12 +178,12 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 	if(conf.seed != 0) {
 		CpuRandom<double> rand(conf.seed);
 		solver.SetRandomInitialState(rand);
-		printf("Given random Seed %lu\n", rand.getSeed());
+		printf("Given random seed %lu\n", rand.getSeed());
 
 	}else{
 		CpuRandom<double> rand;
 		solver.SetRandomInitialState(rand);
-		printf("New random Seed %lu\n", rand.getSeed());
+		printf("New random seed %lu\n", rand.getSeed());
 	}
 
 	//CNFRunner file
@@ -218,9 +220,9 @@ SatResult SolveOnCpu(const SatProblem& problem, const Configuration& conf, vecto
 
 	//make it go
 	SatResult result = solver.Solve();
-	printf("  %d\t%5.4lf\t%5.4lf\t%e\t%d\t%d\n", solver.GetStepCount(),
+	printf("  %d\t%5.4lf\t%5.4lf\t%e\t%d\t%d\t%e\n", solver.GetStepCount(),
 												 solver.GetElapsedTime(), solver.GetElapsedWallTime(),
-												 solver.GetLastStepSize(), solver.GetLastClauseViolationCount(), minViolation);
+												 solver.GetLastStepSize(), solver.GetLastClauseViolationCount(), minViolation, solver.GetMaxAux());
 	//close CNFRunner output
 	if (conf.trajectory) fclose(f);
 

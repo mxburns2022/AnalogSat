@@ -50,12 +50,12 @@ namespace analogsat
 		TFloat b, bb;
 		TFloat alpha;
 		TFloat q;
-
 		//explicit-type constants
 		const TFloat zero = (TFloat)0.0;
 		const TFloat one = (TFloat)1.0;
 		const TFloat two = (TFloat)2.0;
 		const TFloat minusone = (TFloat)-1.0;
+		TFloat auxCap;	//cap on auxiliary variable values
 
 
 	public:
@@ -85,6 +85,9 @@ namespace analogsat
 		//set the sine term prefactor
 		void Set_B(TFloat _b) override;
 
+		//sets a cap on the auxiliary variables
+		void SetAuxCap(const TFloat _cap) override;
+
 		//get the q parameter of the Tanh
 		TFloat Get_Q() const;
 
@@ -111,7 +114,7 @@ namespace analogsat
 		//evaluate the state into clause violations
 		void CalculateClauses(const std::vector<TFloat>& state) const;
 
-		//compute rhs, generic case. 	
+		//compute rhs, generic case.
 		void CalculateAll(const std::vector<TFloat>& state, std::vector<TFloat>& dxdt);
 
 		template <int K>

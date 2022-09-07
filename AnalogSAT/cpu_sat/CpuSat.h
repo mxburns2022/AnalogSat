@@ -46,7 +46,7 @@ namespace analogsat
 		std::vector<TFloat> si;		//spin variable
 
 		std::vector<bool> vars;			//temp buffer for computing clause violations
-
+		TFloat auxCap;	//cap on auxiliary variable values
 		TFloat b, bb;	//bias term, original and scaled values
 		TFloat alpha;	//clause to variable ratio
 
@@ -89,6 +89,9 @@ namespace analogsat
 		//sets a random state suitable for initial condition
 		void SetRandomState(IState& state, ISatRandom<TFloat>& random) override;
 
+		//sets a cap on the auxiliary variables
+		void SetAuxCap(const TFloat _cap) override;
+
 		//count the clause violations
 		int GetClauseViolationCount(const IState& state) const override;
 
@@ -106,7 +109,7 @@ namespace analogsat
 		//calculates rhs - special case for k=3, manually unrolled loops and state cache
 		void CalculateAll3(const std::vector<TFloat>& state, std::vector<TFloat>& dxdt);
 
-		//compute rhs, generic case. 	
+		//compute rhs, generic case.
 		void CalculateAll(const std::vector<TFloat>& state, std::vector<TFloat>& dxdt);
 
 		template <int K>

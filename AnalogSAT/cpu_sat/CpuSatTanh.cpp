@@ -35,8 +35,8 @@ namespace analogsat
 	template<typename TFloat>
 	CpuSatTanh<TFloat>::CpuSatTanh()
 	{
-		n = m = k = 0;		
-		b = 0; //turn off b values by default		
+		n = m = k = 0;
+		b = 0; //turn off b values by default
 		q = (TFloat)1.1;
 	}
 
@@ -57,7 +57,7 @@ namespace analogsat
 
 		kmi.resize(k);
 		si.resize(k);
-		C.resize(m * k);		
+		C.resize(m * k);
 
 		InitProblem(problem);
 	}
@@ -78,7 +78,7 @@ namespace analogsat
 
 		switch (k)
 		{
-		case 3: CalculateAllEx<3>(x, rhs); break; //CalculateAll3(x, rhs); break;		
+		case 3: CalculateAllEx<3>(x, rhs); break; //CalculateAll3(x, rhs); break;
 		case 4: CalculateAllEx<4>(x, rhs); break;
 		case 5: CalculateAllEx<5>(x, rhs); break;
 		case 6: CalculateAllEx<6>(x, rhs); break;
@@ -90,7 +90,7 @@ namespace analogsat
 		}
 
 
-		//ensure: the dummy variable does not change		
+		//ensure: the dummy variable does not change
 		rhs[0] = zero;
 	}
 
@@ -125,7 +125,7 @@ namespace analogsat
 	}
 
 	//creates a suitable random initial state, ensuring correct vector size
-	//usage is optional, user may provide own initial state	
+	//usage is optional, user may provide own initial state
 	template<typename TFloat>
 	void CpuSatTanh<TFloat>::SetRandomState(IState& state, ISatRandom<TFloat>& random)
 	{
@@ -195,7 +195,11 @@ namespace analogsat
 		if (index < 0) { index = -index; sign = minusone; }
 		else { sign = one; }
 	}
-
+	template<typename TFloat>
+	void CpuSatTanh<TFloat>::SetAuxCap(TFloat _cap)
+	{
+		auxCap = _cap;
+	}
 
 #define PI 3.141592653589793
 #define PI_OVER_2 1.570796326794897
@@ -243,7 +247,7 @@ namespace analogsat
 
 	}
 
-	//compute rhs, generic case. 	
+	//compute rhs, generic case.
 	template<typename TFloat>
 	void CpuSatTanh<TFloat>::CalculateAll(const vector<TFloat>& state, vector<TFloat>& dxdt)
 	{
@@ -278,10 +282,10 @@ namespace analogsat
 			sum += am;
 
 			//the current km will participate in the sums of those i variables who we just looped over
-			//loop over again to add these to their sums			
+			//loop over again to add these to their sums
 			for (int i = 0; i < k; i++)
 			{
-				index = GetC(i, j); //cache-aligned (maybe still in cache from last loop)				
+				index = GetC(i, j); //cache-aligned (maybe still in cache from last loop)
 				GetIndexSign(index, sign);
 
 				//prepare the kmi product
@@ -312,7 +316,7 @@ namespace analogsat
 		memset(C.data(), 0, C.size() * sizeof(int));
 
 
-		//order columns by first row index	
+		//order columns by first row index
 		//clauseOrder = sort_indices<vector<int>>(CC, &ColComparator); //this should be helpful for CPU by increasing cache locality
 
 		//default ordering

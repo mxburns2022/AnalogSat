@@ -20,6 +20,7 @@ public:
 	int solverVersion;	//for gpu: v1, v2, or v3
 	bool minisat;		//use minisat (disable any CUDA, ignore related parameters, run on CPU)
 	unsigned long seed; //manually provided seed
+	double auxCap; // manually provided aux variable limit
 	double eps;		//adaptive time step relative error tolerance
 	double tmax;	//analog time limit
 	double bias;	//bias term for highly symmetric SAT problems

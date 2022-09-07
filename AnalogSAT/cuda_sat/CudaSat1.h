@@ -37,9 +37,9 @@ namespace analogsat
 	{
 	protected:
 
-		int n, m, k;					//number of variables, number of clauses, max num of clauses	
-		std::vector<int> C;				//clause matrix, rows one by one plus padding (GPU aligned)	
-		std::vector<bool> vars;			//use these variables in verification		
+		int n, m, k;					//number of variables, number of clauses, max num of clauses
+		std::vector<int> C;				//clause matrix, rows one by one plus padding (GPU aligned)
+		std::vector<bool> vars;			//use these variables in verification
 		std::vector<int> clauseOrder;	//ordering of the original clauses
 
 		//constants
@@ -49,10 +49,10 @@ namespace analogsat
 		const TFloat minusone = (TFloat)-1.0;
 
 		//gpu arrays
-		int* gC = 0;			//clauses		
+		int* gC = 0;			//clauses
 		int* gBool = 0;			//holds true/false for each clause
-		int* gReduceBuf1 = 0;	//holds the temporary reduction results	
-		int* gReduceBuf2 = 0;	//holds the temporary reduction results	
+		int* gReduceBuf1 = 0;	//holds the temporary reduction results
+		int* gReduceBuf2 = 0;	//holds the temporary reduction results
 		TFloat* gMeanAm;		//mean am value (atomic global, single value)
 		int stride;				//clause matrix stride
 
@@ -60,7 +60,7 @@ namespace analogsat
 		virtual void SetDeviceConstants();
 		virtual void SetLaunchConfig();
 		virtual void Allocate();
-		virtual void Free();		
+		virtual void Free();
 
 		//initializes the SAT problem (clause optimizations) and upload to gpu
 		virtual void InitProblem(const SatProblem& problem);
@@ -72,7 +72,8 @@ namespace analogsat
 		//locals
 		CudaSatArgs<TFloat> cons;
 		dim3 blocks, blocks2, threads;	//kernel configs
-		TFloat b;		
+		TFloat b;
+		TFloat auxCap;	//cap on auxiliary variable values
 
 	public:
 
@@ -82,16 +83,17 @@ namespace analogsat
 		typedef IODEState<TFloat, CudaODEState<TFloat>> IBasicState;
 
 		CudaSat1();
-		~CudaSat1() override;		
+		~CudaSat1() override;
 
 		//initialize the SAT ODE from a given problem
 		virtual void SetProblem(const SatProblem& problem) override;
 
 		//allocate a new state vector
-		virtual State* MakeState() const override;		
+		virtual State* MakeState() const override;
 
 		//creates a suitable random initial state
-		virtual void SetRandomState(IState& state, ISatRandom<TFloat>& random) override;		
+		virtual void SetRandomState(IState& state, ISatRandom<TFloat>& random) override;
+
 
 		//calculate RHS by kernel invocation. device pointers expected, dxdt zeroed out expected
 		virtual void GetDerivatives(IBasicState& dxdt, const IBasicState& state, const TFloat time) override;
@@ -102,10 +104,11 @@ namespace analogsat
 
 		//get the sine term prefactor
 		virtual TFloat Get_B() const override;
-		
+
 		//set the sine term prefactor
 		virtual void Set_B(TFloat _b) override;
-
+		//sets a cap on the auxiliary variables
+		virtual void SetAuxCap(const TFloat _cap) override;
 		//calculate the number of violated clauses
 		virtual int GetClauseViolationCount(const IState& state) const override;
 

@@ -95,18 +95,17 @@ namespace analogsat
 		Free();
 	}
 
-
 	template<typename TFloat>
 	TFloat CudaSatTanh1<TFloat>::Get_Q() const { return q; }	//parameter q
 
 	template<typename TFloat>
-	void CudaSatTanh1<TFloat>::Set_Q(TFloat _q)  { q = _q; }	//parameter q	
+	void CudaSatTanh1<TFloat>::Set_Q(TFloat _q)  { q = _q; }	//parameter q
 
 	template <typename TFloat>
 	void CudaSatTanh1<TFloat>::GetDerivatives(IBasicState& dxdt, const IBasicState& state, const TFloat time)
 	{
 		//reset the global mean am
-		if (b > (TFloat)0) CudaSafe(cudaMemsetAsync(gMeanAm, 0, sizeof(TFloat)));			
+		if (b > (TFloat)0) CudaSafe(cudaMemsetAsync(gMeanAm, 0, sizeof(TFloat)));
 
 		dxdt.SetZero();
 		cons.B = b * cons.KNORM * cons.KNORM; // premultiply the bias term with normalization

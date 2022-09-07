@@ -29,14 +29,14 @@
 namespace analogsat
 {
 	//Tanh CTDS, v3
-	//deterministic RHS calculation, slower	
+	//deterministic RHS calculation, slower
 	template <typename TFloat>
 	class CudaSatTanh3 : public CudaSat3<TFloat>
 	{
 		using CudaSat3<TFloat>::b;
 		using CudaSat3<TFloat>::k;
 		using CudaSat3<TFloat>::n;
-		using CudaSat3<TFloat>::m;		
+		using CudaSat3<TFloat>::m;
 		using CudaSat3<TFloat>::m_padded;
 		using CudaSat3<TFloat>::gC;
 		using CudaSat3<TFloat>::gCn;
@@ -47,7 +47,7 @@ namespace analogsat
 		using CudaSat3<TFloat>::blocks_collect;
 		using CudaSat3<TFloat>::threads_collect;
 		using CudaSat3<TFloat>::clauses_per_block;
-		using CudaSat3<TFloat>::Free;		
+		using CudaSat3<TFloat>::Free;
 		using CudaSat3<TFloat>::gAux1;
 		using CudaSat3<TFloat>::gAux2;
 		using CudaSat3<TFloat>::gStartVar;

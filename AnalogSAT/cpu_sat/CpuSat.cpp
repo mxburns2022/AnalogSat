@@ -36,7 +36,7 @@ namespace analogsat
 	CpuSat<TFloat>::CpuSat()
 	{
 		n = m = k = 0;
-		b = 0; //turn off b values by default		
+		b = 0; //turn off b values by default
 	}
 
 
@@ -78,7 +78,7 @@ namespace analogsat
 		switch (k)
 		{
 		case 2: CalculateAllEx<2>(x, rhs); break;
-		case 3: CalculateAllEx<3>(x, rhs); break;
+		case 3: CalculateAll3(x, rhs); break;
 		case 4: CalculateAllEx<4>(x, rhs); break;
 		case 5: CalculateAllEx<5>(x, rhs); break;
 		case 6: CalculateAllEx<6>(x, rhs); break;
@@ -118,7 +118,7 @@ namespace analogsat
 	}
 
 	//creates a suitable random initial state, ensuring correct vector size
-	//usage is optional, user may provide their own initial state	
+	//usage is optional, user may provide their own initial state
 	template<typename TFloat>
 	void CpuSat<TFloat>::SetRandomState(IState& state, ISatRandom<TFloat>& random)
 	{
@@ -130,6 +130,11 @@ namespace analogsat
 		random.GenerateUniform(stat.data() + 1, n + m);
 		for (int i = 1; i < n + 1; i++) stat[i] = stat[i] * two - one;
 		for (int i = n + 1; i < n + m + 1; i++) stat[i] = stat[i] + one;
+	}
+	template<typename TFloat>
+	void CpuSat<TFloat>::SetAuxCap(TFloat _cap)
+	{
+		auxCap = _cap;
 	}
 
 	template<typename TFloat>
@@ -248,7 +253,7 @@ namespace analogsat
 		TFloat sign1, sign2, sign3;
 		TFloat km, am;
 		TFloat s1, s2, s3;
-
+		TFloat max_am = 0.0;
 		//mult for Km
 		for (int j = 0; j < m; j++)
 		{
@@ -275,15 +280,19 @@ namespace analogsat
 			//auxiliary rhs
 			int p = n + 1 + j;
 			am = state[p];
-			dxdt[p] = am * km;
+			dxdt[p] = (auxCap-am) * km;
+			if (am > max_am) {
+				max_am = am;
+			}
 
-			//rhs for variables		
+			//rhs for variables
 			dxdt[index1] += two * km * knorm * s2 * s3 * am * sign1;
 
 			dxdt[index2] += two * km * knorm * s1 * s3 * am * sign2;
 
 			dxdt[index3] += two * km * knorm * s1 * s2 * am * sign3;
 		}
+		//printf("%f %f\n", auxCap, max_am);
 	}
 
 	//compute rhs, generic case (for K>10)
@@ -321,10 +330,10 @@ namespace analogsat
 			sum += am;
 
 			//the current km will participate in the sums of those i variables who we just looped over
-			//loop over again to add these to their sums			
+			//loop over again to add these to their sums
 			for (int i = 0; i < k; i++)
 			{
-				index = GetC(i, j); //cache-aligned (maybe still in cache from last loop)				
+				index = GetC(i, j); //cache-aligned (maybe still in cache from last loop)
 				GetIndexSign(index, sign);
 
 				//prepare the kmi*km product
@@ -352,12 +361,12 @@ namespace analogsat
 	template<typename TFloat>
 	void CpuSat<TFloat>::InitProblem(const SatProblem& problem)
 	{
-		knorm = TFloat(pow(2.0, -k)); //no bit-shift trickery, because what if k>32...		
+		knorm = TFloat(pow(2.0, -k)); //no bit-shift trickery, because what if k>32...
 
 		//reset clauses (creates zero padding)
 		memset(C.data(), 0, C.size() * sizeof(int));
 
-		//order columns by first row index	
+		//order columns by first row index
 		//clauseOrder = sort_indices<vector<int>>(CC, &ColComparator); //this should be helpful for CPU by increasing cache locality | Re: not really
 
 		//default ordering

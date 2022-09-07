@@ -38,7 +38,7 @@ namespace analogsat
 		int n, m, k;		//number of variables, number of clauses
 		std::vector<int> C;				//clause matrix, columns one after the other (same on GPU!)
 		std::vector<bool> vars;			//use these variables in verification
-		std::vector<int> clauseOrder;	//ordering of the original clauses		
+		std::vector<int> clauseOrder;	//ordering of the original clauses
 
 
 		//constants
@@ -55,12 +55,12 @@ namespace analogsat
 
 		int LCM(int a, int b); //least common multiple of two numbers
 
-		int* gC;	//clauses		
+		int* gC;	//clauses
 		int* gBool; //holds true/false for each clause
 		int* gReduceBuf1;	//holds the temporary reduction results
 		int* gReduceBuf2;	//holds the temporary reduction results
 		TFloat* gAux1;		//reduction of the auxiliary variables
-		TFloat* gAux2;		//reduction of the auxiliary variables		
+		TFloat* gAux2;		//reduction of the auxiliary variables
 
 		int* gStartVar, *gEndVar;	//start and end indices for each variable in the collect buffer
 		int* gCn;					//indices where the collectibles are located
@@ -76,10 +76,11 @@ namespace analogsat
 		//locals
 		CudaSatArgs<TFloat> cons;
 		dim3 blocks, threads;
-		dim3 blocks_collect, threads_collect; 
+		dim3 blocks_collect, threads_collect;
 		int blocksize, clauses_per_block;
 		int m_padded;
 		TFloat b;
+		TFloat auxCap;	//cap on auxiliary variable values
 
 	public:
 
@@ -94,7 +95,7 @@ namespace analogsat
 
 		virtual void SetProblem(const SatProblem& problem) override;
 
-		virtual State* MakeState() const override;		
+		virtual State* MakeState() const override;
 
 		//calculate RHS by kernel invocation
 		virtual void GetDerivatives(IBasicState& dxdt, const IBasicState& state, const TFloat time) override;
@@ -106,10 +107,11 @@ namespace analogsat
 		//get/set the sine term prefactor
 		virtual TFloat Get_B() const override;
 		virtual void Set_B(TFloat _b) override;
-		
+
 		//creates a suitable random initial state
 		virtual void SetRandomState(IState& state, ISatRandom<TFloat>& random) override;
-
+		//sets a cap on the auxiliary variables
+		virtual void SetAuxCap(const TFloat _cap) override;
 		//calculate the number of violated clauses
 		virtual int GetClauseViolationCount(const IState& state) const override;
 

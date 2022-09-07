@@ -33,7 +33,7 @@ namespace analogsat
 	//older implementation, for reference - DO NOT DELETE, KEEP FOR ILLUSTRATION
 	/*
 	//r.h.s calculation: m clauses to evaluate
-	//each thread operates on the clause in the current workwindow	
+	//each thread operates on the clause in the current workwindow
 	// kept for versioning, original implementation
 	template <typename TFloat>
 	__global__ void KernelCalculateRHSc3(TFloat* rhs, TFloat* state)
@@ -68,11 +68,11 @@ namespace analogsat
 			index3 = index3 < 0 ? -index3 : index3;
 
 
-			s1 = state[index1];				//gather (uncoalesced)	
+			s1 = state[index1];				//gather (uncoalesced)
 			s1 = (TFloat)1.0 - s1 * sign1;	//spin
 			km *= s1;						//multiply km
 
-			s2 = state[index2];				//gather (uncoalesced)	
+			s2 = state[index2];				//gather (uncoalesced)
 			s2 = (TFloat)1.0 - s2 * sign2;	//spin
 			km *= s2;						//multiply km
 
@@ -106,7 +106,7 @@ namespace analogsat
 		}
 	}
 
-	//modified r.h.s calculation: am values are summed across all clauses for later adjustment	
+	//modified r.h.s calculation: am values are summed across all clauses for later adjustment
 	// kept for versioning, how to warp-sum am values
 	template <typename TFloat>
 	__global__ void KernelCalculateRHSc3_mod(TFloat* rhs, TFloat* state)
@@ -141,11 +141,11 @@ namespace analogsat
 			index3 = index3 < 0 ? -index3 : index3;
 
 
-			s1 = state[index1];				//gather (uncoalesced)	
+			s1 = state[index1];				//gather (uncoalesced)
 			s1 = (TFloat)1.0 - s1 * sign1;	//spin
 			km *= s1;						//multiply km
 
-			s2 = state[index2];				//gather (uncoalesced)	
+			s2 = state[index2];				//gather (uncoalesced)
 			s2 = (TFloat)1.0 - s2 * sign2;	//spin
 			km *= s2;						//multiply km
 
@@ -166,7 +166,7 @@ namespace analogsat
 		sum += __shfl_down_sync(0xffffffff, sum, 4, 32);
 		sum += __shfl_down_sync(0xffffffff, sum, 2, 32);
 		sum += __shfl_down_sync(0xffffffff, sum, 1, 32);
-		
+
 		//deposit the sum to global
 		if (threadIdx.x % 32 == 0) atomicAdd(GetMeanAm<TFloat>(), sum); //first lane in the warp deposits the result
 
@@ -266,7 +266,7 @@ namespace analogsat
 		}
 	}
 	*/
-	
+
 	template <typename TFloat, int K>
 	__global__ void KernelCalculateRHSv1(CudaSatArgs<TFloat> cons, TFloat* rhs, const TFloat* __restrict__ state)
 	{
@@ -280,7 +280,7 @@ namespace analogsat
 			km = cons.KNORM;
 
 			#pragma unroll
-			for (int q = 0; q < K; q++) index[q] = cons.GC[j + q * cons.STRIDE]; //load (coalesced)	
+			for (int q = 0; q < K; q++) index[q] = cons.GC[j + q * cons.STRIDE]; //load (coalesced)
 
 			#pragma unroll
 			for (int q = 0; q < K; q++)
@@ -378,7 +378,7 @@ namespace analogsat
 	template <typename TFloat>
 	CudaSat1<TFloat>::~CudaSat1()
 	{
-		Free();	
+		Free();
 	}
 
 	template <typename TFloat>
@@ -394,7 +394,7 @@ namespace analogsat
 		CudaSafe(cudaMalloc(&gReduceBuf2, sizeof(int) * MAX_BLOCK_DIM_SIZE));
 		CudaSafe(cudaMalloc(&gMeanAm, sizeof(TFloat)));
 
-		//host alloc	
+		//host alloc
 		C.resize(stride * k);
 	}
 
@@ -496,7 +496,11 @@ namespace analogsat
 		CudaSafe(cudaMemcpy(&res, gReduceBuf1, sizeof(int), cudaMemcpyDeviceToHost));
 		return res;
 	}
-
+	template<typename TFloat>
+	void CudaSat1<TFloat>::SetAuxCap(TFloat _cap)
+	{
+		auxCap = _cap;
+	}
 	template <typename TFloat>
 	void CudaSat1<TFloat>::GetDerivatives(IBasicState& dxdt, const IBasicState& state, const TFloat time)
 	{

@@ -187,6 +187,19 @@ namespace analogsat
 			//update dependent stats
 			lastViolationCount = sat.GetClauseViolationCount(state);
 		}
+		//get maximum aux variable value
+		TFloat GetMaxAux() const {
+			int m = satPtr->Get_M();
+			int n = satPtr->Get_N();
+			std::vector<TFloat> state;
+			state.reserve(n+m+1);
+			newState->CopyTo(state);
+			TFloat maxAux = 0.0;
+			for (int i = n + 1; i < n + m + 1; i++ ){
+				maxAux = state[i] > maxAux ? state[i] : maxAux;
+			}
+			return maxAux;
+		}
 
 		//set the current SAT state from a vector
 		void SetSatState(const std::vector<TFloat>& _state)

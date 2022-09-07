@@ -48,7 +48,7 @@ namespace analogsat
 		operator const TState& () const override { return (*state).operator const TState&(); }
 
 		//override existing implementation: don't call protected things, just redirect everything to the pointer
-		
+
 		void CopyTo(std::vector<TFloat>& target) const override
 		{
 			state->CopyTo(target);
@@ -68,9 +68,9 @@ namespace analogsat
 		{
 			state->SetZero();
 		}
-		
-		int GetAllocSize() const override 
-		{ 
+
+		int GetAllocSize() const override
+		{
 			return state->GetAllocSize();
 		}
 

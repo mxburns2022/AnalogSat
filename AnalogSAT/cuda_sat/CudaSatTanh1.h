@@ -34,7 +34,7 @@ namespace analogsat
 	//- k-SAT supported up to k <= 10
 	template <typename TFloat>
 	class CudaSatTanh1 : public CudaSat1<TFloat>
-	{		
+	{
 		using CudaSat1<TFloat>::b;
 		using CudaSat1<TFloat>::k;
 		using CudaSat1<TFloat>::n;
@@ -51,7 +51,7 @@ namespace analogsat
 	protected:
 		TFloat q;
 
-	public:		
+	public:
 
 		//state types for this SAT implementation
 		typedef CudaSatState1<TFloat> State;

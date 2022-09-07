@@ -41,7 +41,7 @@ namespace analogsat
 		int n, m, k;					//number of variables, number of clauses, max number of literals in a clause
 		std::vector<int> C;				//clause matrix, columns one after the other (same on GPU!)
 		std::vector<bool> vars;			//use these variables in verification
-		std::vector<int> clauseOrder;	//ordering of the original clauses		
+		std::vector<int> clauseOrder;	//ordering of the original clauses
 
 		//constants
 		const TFloat zero = (TFloat)0.0;
@@ -50,7 +50,7 @@ namespace analogsat
 		const TFloat minusone = (TFloat)-1.0;
 
 		//gpu arrays
-		int* gC = 0;			//clauses		
+		int* gC = 0;			//clauses
 		int* gBool = 0;			//holds true/false for each clause
 		int* gReduceBuf1 = 0;	//holds the temporary reduction results
 		int* gReduceBuf2 = 0;	//holds the temporary reduction results
@@ -75,8 +75,9 @@ namespace analogsat
 		CudaSatArgs<TFloat> cons;
 		dim3 blocks, threads;
 		int blocksize, clauses_per_block;
-		int m_padded;		
-		TFloat b;		
+		int m_padded;
+		TFloat b;
+		TFloat auxCap;	//cap on auxiliary variable values
 
 	public:
 
@@ -92,7 +93,7 @@ namespace analogsat
 		virtual void SetProblem(const SatProblem& problem) override;
 
 		//allocate a new state vector
-		virtual State* MakeState() const override;		
+		virtual State* MakeState() const override;
 
 		//creates a suitable random initial state
 		virtual void SetRandomState(IState& state, ISatRandom<TFloat>& random) override;
@@ -103,13 +104,14 @@ namespace analogsat
 		virtual int Get_N() const override; //number of variables
 		virtual int Get_M() const override; //number of clauses
 		virtual int Get_K() const override; //max number of variables in a clause
-		
+
 		//get the sine term prefactor
 		virtual TFloat Get_B() const override;
 
 		//set the sine term prefactor
 		virtual void Set_B(TFloat _b) override;
-
+		//sets a cap on the auxiliary variables
+		virtual void SetAuxCap(const TFloat _cap) override;
 		//calculate the number of violated clauses
 		virtual int GetClauseViolationCount(const IState& state) const override;
 

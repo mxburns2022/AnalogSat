@@ -1,7 +1,7 @@
 #!/bin/bash
-GEN1=arch=compute_70,code=sm_70
-GEN2=arch=compute_61,code=sm_61
-GEN3=arch=compute_80,code=sm_80
+GEN1=arch=compute_37,code=sm_37 # For Tesla K80
+GEN2=arch=compute_70,code=sm_70 # For V100
+GEN3=arch=compute_80,code=sm_80 # For A100
 echo $GEN1
 echo $GEN2
 echo $GEN3

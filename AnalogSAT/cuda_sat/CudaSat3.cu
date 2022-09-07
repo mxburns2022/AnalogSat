@@ -33,7 +33,7 @@ namespace analogsat
 	template <typename TFloat>
 	__global__ void KernelCalculateRHS3(CudaSatArgs<TFloat> cons, TFloat* state, TFloat* rhs, TFloat* collect, int k, int clauses_per_block)
 	{
-		TFloat* sh_state = reinterpret_cast<TFloat*>(shmemx);		
+		TFloat* sh_state = reinterpret_cast<TFloat*>(shmemx);
 
 		int i = blockIdx.x * blockDim.x + threadIdx.x;	//index in clause-literals
 		int threadDivK = threadIdx.x / k;				//which clause (out of the clauses processed by this block)
@@ -42,7 +42,7 @@ namespace analogsat
 		//grab the desired section of clauses
 		int idx = cons.GC[i]; //coalesced load
 
-		//transform to get state index, and keep the floating sign	
+		//transform to get state index, and keep the floating sign
 		TFloat sign = idx < 0 ? (TFloat)-1.0 : (TFloat)1.0;
 		idx *= idx < 0 ? -1 : 1;
 
@@ -83,7 +83,7 @@ namespace analogsat
 			//auxiliary rhs
 			int offset = blockIdx.x * clauses_per_block + threadIdx.x + cons.N + 2;
 			TFloat amm = state[offset];					//load (coalesced)
-			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)		
+			rhs[offset] = sh_state[threadIdx.x] * amm;	//load shared (no conflict), store (coalesced)
 
 			//replace km with am in shared
 			sh_state[threadIdx.x] = amm;		//store shared (no conflict)
@@ -100,7 +100,7 @@ namespace analogsat
 
 	template <typename TFloat>
 	void CudaSat3<TFloat>::SetDeviceConstants()
-	{		
+	{
 		cons.KNORM = (TFloat)pow(2.0, -k);
 		cons.N = n;
 		cons.M = m_padded;
@@ -141,7 +141,7 @@ namespace analogsat
 	template <typename TFloat>
 	CudaSat3<TFloat>::~CudaSat3()
 	{
-		Free();		
+		Free();
 	}
 
 	template<typename TFloat>
@@ -149,7 +149,7 @@ namespace analogsat
 	{
 		n = problem.Get_N();
 		m = problem.Get_M();
-		k = problem.Get_K();		
+		k = problem.Get_K();
 
 		Free();
 		Allocate();
@@ -172,7 +172,11 @@ namespace analogsat
 
 		return m;
 	}
-
+	template<typename TFloat>
+	void CudaSat3<TFloat>::SetAuxCap(TFloat _cap)
+	{
+		auxCap = _cap;
+	}
 	template <typename TFloat>
 	void CudaSat3<TFloat>::Allocate()
 	{
@@ -199,7 +203,7 @@ namespace analogsat
 		CudaSafe(cudaMalloc(&gEndVar, sizeof(int)* (n + 2)));
 		CudaSafe(cudaMalloc(&gCollect, m_padded * k * sizeof(TFloat)));
 
-		//convertBuf.resize(m); //here, so no need later	
+		//convertBuf.resize(m); //here, so no need later
 		C.resize(m_padded * k);
 	}
 
@@ -233,7 +237,7 @@ namespace analogsat
 		//reset clauses (creates zero padding)
 		memset(C.data(), 0, C.size() * sizeof(int));
 
-		//order columns by first row index	
+		//order columns by first row index
 		//clauseOrder = sort_indices<vector<int>>(CC, &ColComparator); //this should be helpful for CPU by increasing cache locality
 
 		//default ordering
@@ -369,7 +373,7 @@ namespace analogsat
 		//	bool clause = false;
 		//	for (int i = 0; i < k; i++)
 		//	{
-		//		int item = GetC(i, j);				
+		//		int item = GetC(i, j);
 		//		int index = item < 0 ? -item : item;
 
 		//		bool lit = temp[index] > 0;
@@ -423,7 +427,7 @@ namespace analogsat
 
 		if (b > (TFloat)0)
 		{
-			//step 3: add the sine term for each variable (using the deterministic mean from step 0)		
+			//step 3: add the sine term for each variable (using the deterministic mean from step 0)
 			dim3 blocks2((int)ceil((float)(n + 2) / threads.x));
 			KernelAdjustState3<TFloat> KERNEL_ARGS2(blocks2, threads)(cons, dxdt, state);
 		}
